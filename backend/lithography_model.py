@@ -59,3 +59,30 @@ class VirtualLithoProcess:
             r_min=params.get('r_min', 0.1),
             n_mack=params.get('n_mack', 5)
         )
+
+    def simulate_chain_detailed(self, aerial_image, params):
+        """Full E2E process returning all intermediate maps."""
+        dose = params.get('dose', 20)
+
+        acid = self.exposure_stochastic_euv(aerial_image, dose)
+
+        m_latent = self.post_exposure_bake(
+            acid,
+            bake_time=params.get('peb_time', 60),
+            d_acid=params.get('diffusion_coef', 5.0),
+            k_amp=params.get('k_amp', 0.2)
+        )
+
+        dissolution = self.mack_dissolution(
+            m_map=m_latent,
+            r_max=params.get('r_max', 100),
+            r_min=params.get('r_min', 0.1),
+            n_mack=params.get('n_mack', 5)
+        )
+
+        return {
+            "aerial_image": aerial_image,
+            "acid_map": acid,
+            "deprotection": 1.0 - m_latent,
+            "dissolution_rate": dissolution,
+        }
