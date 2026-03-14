@@ -2,10 +2,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 STAGE_CONFIG = [
-    ("aerial_image", "Aerial Image (Target Pattern)", "Viridis"),
-    ("acid_map", "Acid Map (Post-Exposure)", "Hot"),
-    ("deprotection", "Deprotection Profile (Post-PEB)", "Plasma"),
-    ("dissolution_rate", "Dissolution Rate (Mack Model)", "Inferno"),
+    ("aerial_image", "Aerial Image (Target Pattern)", "Viridis", "Intensity (a.u.)"),
+    ("acid_map", "Acid Map (Post-Exposure)", "Hot", "Acid Conc. (a.u.)"),
+    ("deprotection", "Deprotection Profile (Post-PEB)", "Plasma", "Deprotection (a.u.)"),
+    ("dissolution_rate", "Dissolution Rate (Mack Model)", "Inferno", "Rate (nm/s)"),
 ]
 
 
@@ -13,26 +13,37 @@ def build_pipeline_figure(stages, title="EUV Lithography Simulation Pipeline"):
     fig = make_subplots(
         rows=2, cols=2,
         subplot_titles=[cfg[1] for cfg in STAGE_CONFIG],
-        horizontal_spacing=0.12,
-        vertical_spacing=0.12,
+        horizontal_spacing=0.22,
+        vertical_spacing=0.16,
     )
 
-    for idx, (key, label, colorscale) in enumerate(STAGE_CONFIG):
+    for idx, (key, label, colorscale, cbar_title) in enumerate(STAGE_CONFIG):
         row, col = divmod(idx, 2)
         fig.add_trace(
             go.Heatmap(
                 z=stages[key],
                 colorscale=colorscale,
-                colorbar=dict(len=0.35, y=0.80 - row * 0.58, x=0.44 + col * 0.56),
-                hovertemplate="x: %{x}<br>y: %{y}<br>value: %{z:.4f}<extra></extra>",
+                colorbar=dict(
+                    title=dict(text=cbar_title, side="right"),
+                    len=0.35,
+                    y=0.82 - row * 0.60,
+                    x=0.42 + col * 0.58,
+                    thickness=15,
+                ),
+                hovertemplate="x: %{x} nm<br>y: %{y} nm<br>value: %{z:.4f}<extra></extra>",
             ),
             row=row + 1, col=col + 1,
         )
 
+    # Add axis labels to all subplots
+    for i in range(1, 5):
+        fig.update_xaxes(title_text="X Position (nm)", row=(i - 1) // 2 + 1, col=(i - 1) % 2 + 1)
+        fig.update_yaxes(title_text="Y Position (nm)", row=(i - 1) // 2 + 1, col=(i - 1) % 2 + 1)
+
     fig.update_layout(
         title_text=title,
-        height=900,
-        width=1050,
+        height=1000,
+        width=1200,
     )
     return fig
 
@@ -56,6 +67,10 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
     <title>EUV Litho Pipeline</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }}
+        .nav {{ background: #1a1a2e; padding: 8px 24px; display: flex; gap: 16px; align-items: center; }}
+        .nav a {{ color: #aac; text-decoration: none; font-size: 14px; padding: 4px 12px; border-radius: 4px; }}
+        .nav a:hover {{ background: #2a2a4e; }}
+        .nav a.active {{ background: #2563eb; color: #fff; }}
         .controls {{
             background: #fff; padding: 16px 24px; border-bottom: 1px solid #e0e0e0;
             display: flex; flex-wrap: wrap; gap: 16px; align-items: end;
@@ -74,6 +89,10 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
     </style>
 </head>
 <body>
+    <div class="nav">
+        <a href="/api/visualize" class="active">2D Process Simulation</a>
+        <a href="/api/visualize-3d">3D Optical Pipeline</a>
+    </div>
     <form class="controls" method="get" action="/api/visualize">
         <div class="control-group">
             <label>Dose (mJ/cm&sup2;)</label>
