@@ -554,6 +554,12 @@ def _build_lab91_section_html():
     </div>
 
     <div class="section">
+        <div class="callout" style="background:#ede9fe; border-color:#8b5cf6; color:#4c1d95;">
+            <b>Core insight:</b> Patterning is no longer a static lithography step — it becomes a
+            <b>control layer</b> that compensates for transfer-induced material variability.
+            Per-zone dose feedback, real-time thickness sensing, and emitter-local power stabilization
+            turn the write head into an adaptive system that closes the loop on MoS\u2082 placement quality.
+        </div>
         <h2>Five Process Modifications for Lab 91</h2>
         <p style="font-size:13px; color:#64748b; margin:0 0 14px 0; line-height:1.5;">
             Each modification replaces a step in Lab 91's current EBL-based MoS\u2082 RF switch
