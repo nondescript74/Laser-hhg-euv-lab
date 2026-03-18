@@ -470,6 +470,7 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
         <a href="/api/visualize-3d">3D Pipeline</a>
         <a href="/api/fleet-dashboard" class="active">Platform Economics</a>
         <a href="/api/multihead">Multi-Head Array</a>
+        <a href="/api/psf-synthesis">PSF Synthesis</a>
         <a href="/api/writer-head">11-DOF Head</a>
     </div>
 

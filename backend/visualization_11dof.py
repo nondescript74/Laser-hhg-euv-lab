@@ -383,6 +383,7 @@ _NAV = """
     <a href="/api/visualize-3d">3D Pipeline</a>
     <a href="/api/fleet-dashboard">Platform Economics</a>
     <a href="/api/multihead">Multi-Head Array</a>
+    <a href="/api/psf-synthesis">PSF Synthesis</a>
     <a href="/api/writer-head" class="active">11-DOF Writer Head</a>
 </div>"""
 

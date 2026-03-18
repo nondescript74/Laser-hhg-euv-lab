@@ -53,7 +53,7 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
     fig = build_pipeline_figure(stages, title=title)
     plot_html = fig.to_html(full_html=False, include_plotlyjs="cdn")
 
-    dose = params.get("dose", 20.0)
+    dose = params.get("dose", 15.0)
     line_width = params.get("line_width", 20)
     peb_time = params.get("peb_time", 60.0)
     diffusion_coef = params.get("diffusion_coef", 5.0)
@@ -94,6 +94,7 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
         <a href="/api/visualize-3d">3D Pipeline</a>
         <a href="/api/fleet-dashboard">Platform Economics</a>
         <a href="/api/multihead">Multi-Head Array</a>
+        <a href="/api/psf-synthesis">PSF Synthesis</a>
         <a href="/api/writer-head">11-DOF Head</a>
     </div>
     <form class="controls" method="get" action="/api/visualize">

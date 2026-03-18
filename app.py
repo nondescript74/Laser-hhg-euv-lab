@@ -198,7 +198,7 @@ async def simulate(payload: dict = Body(...)):
 
 @app.get("/api/visualize", response_class=HTMLResponse)
 async def visualize(
-    dose: float = 20.0,
+    dose: float = 15.0,
     line_width: int = 20,
     peb_time: float = 60.0,
     diffusion_coef: float = 5.0,
