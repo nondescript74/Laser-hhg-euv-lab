@@ -6,7 +6,11 @@ from backend.hhg_model import (
     calculate_cutoff_energy,
 )
 from backend.optical_pipeline import EUVOpticalPipeline
-from backend.visualization_3d import build_3d_pipeline_figure
+from backend.visualization_3d import (
+    build_3d_pipeline_figure,
+    build_3d_pipeline_html,
+    _get_platform_geometry,
+)
 
 
 def test_ionization_potentials():
@@ -74,3 +78,45 @@ def test_pipeline_variable_mirrors():
         pipeline.build_default_pipeline(n_mirrors=n)
         mirror_count = sum(1 for c in pipeline.components if c.component_type == "mirror")
         assert mirror_count == min(n, 2)  # max 2 mirror positions defined
+
+
+def test_platform_geometry_has_expected_keys():
+    pipeline = EUVOpticalPipeline()
+    pipeline.build_default_pipeline()
+    geom = _get_platform_geometry(pipeline, {"gas_type": "Ar"})
+    assert "platform" in geom
+    assert "hhg" in geom
+    assert "power_budget" in geom
+    assert "grouped_layers" in geom
+    assert "full_layers" in geom
+    assert geom["platform"]["total_heads"] == 160
+    assert geom["platform"]["heads_per_package"] == 16
+    assert len(geom["grouped_layers"]) == 4
+    assert len(geom["full_layers"]) == 11
+
+
+def test_3d_html_has_zoom_control():
+    pipeline = EUVOpticalPipeline()
+    pipeline.build_default_pipeline()
+    params = {"gas_type": "Ar", "pressure_mbar": 30, "intensity_w_cm2": 1e14,
+              "n_mirrors": 2, "filter_material": "Al", "filter_thickness_nm": 200}
+    html = build_3d_pipeline_html(pipeline, params)
+    assert "zoomSlider" in html
+    assert "buildPlatform" in html
+    assert "buildPackage" in html
+    assert "buildHead" in html
+    assert "Integrated Multi-Head Writer Platform" in html
+
+
+def test_3d_html_has_full_nav():
+    pipeline = EUVOpticalPipeline()
+    pipeline.build_default_pipeline()
+    params = {"gas_type": "Ar", "pressure_mbar": 30, "intensity_w_cm2": 1e14,
+              "n_mirrors": 2, "filter_material": "Al", "filter_thickness_nm": 200}
+    html = build_3d_pipeline_html(pipeline, params)
+    assert "2D Process Sim" in html
+    assert "3D Pipeline" in html
+    assert "Platform Economics" in html
+    assert "Multi-Head Array" in html
+    assert "PSF Synthesis" in html
+    assert "11-DOF Head" in html
