@@ -190,6 +190,160 @@ def compute_tile_exposure(
     }
 
 
+
+# --- Lab 91 Use Case: MoS₂ 2D Material RF Switches ---
+
+LAB91_PROCESS = {
+    "company": "Lab 91",
+    "location": "Austin, TX",
+    "mission": "Automating transfer of 2D materials (MoS₂) from growth wafers to target wafers",
+    "beachhead": "RF switches for 6G",
+    "future": "Transistors at sub-2nm nodes",
+    "current_process": {
+        "patterning": "EBL (electron beam lithography)",
+        "growth": "CVD MoS₂ on sapphire or glass",
+        "transfer": "Wet/dry transfer onto device substrates",
+        "resist": "PMMA (Protocol II) / AZ1512HS (Protocol I)",
+        "challenge": "Clean contact formation — polymer residue degrades MoS₂ contacts",
+    },
+    "switch_area_um2": 0.5 * 0.5,  # 0.5×0.5 µm² switch area
+    "contact_cd_nm": 300,  # minimum contact width
+}
+
+# Shot noise comparison at 2×2 nm² voxel
+SHOT_NOISE_COMPARISON = {
+    "voxel_nm": 2,
+    "euv": {
+        "wavelength_nm": 13.5,
+        "dose_mj_cm2": 60,
+        "photon_energy_ev": 91.8,  # 13.5 nm
+        "photons_per_voxel": 163,
+        "shot_noise_pct": 7.8,
+    },
+    "vcsel_405": {
+        "wavelength_nm": 405,
+        "dose_mj_cm2": 20,
+        "photon_energy_ev": 3.06,  # 405 nm
+        "photons_per_voxel": 1630,
+        "shot_noise_pct": 2.5,
+    },
+}
+
+
+def compute_lab91_throughput(
+    n_emitters: int = 12_000,
+    pixel_clock_ghz: float = 30.0,
+    wafer_diameter_mm: float = 300.0,
+    pixel_size_nm: float = 2.0,
+    overhead_pct: float = 20.0,
+) -> dict:
+    """Compute Lab 91 specific throughput for MoS₂ RF switch patterning."""
+    # Total pixel rate
+    pixel_rate_hz = n_emitters * pixel_clock_ghz * 1e9  # px/s
+
+    # Wafer area in pixels
+    wafer_area_mm2 = 3.14159 * (wafer_diameter_mm / 2) ** 2
+    wafer_area_nm2 = wafer_area_mm2 * 1e12  # mm² → nm²
+    pixel_area_nm2 = pixel_size_nm ** 2
+    total_pixels = wafer_area_nm2 / pixel_area_nm2
+
+    # Exposure time
+    exposure_time_s = total_pixels / pixel_rate_hz
+    total_time_s = exposure_time_s * (1 + overhead_pct / 100)
+    wph = 3600 / total_time_s if total_time_s > 0 else 0
+
+    # Resolution at 405nm
+    na = 0.7
+    rayleigh_nm = 0.61 * 405 / na  # ~353 nm (k1=0.61)
+    practical_cd_nm = 0.5 * 405 / na  # ~289 nm (k1=0.5)
+
+    return {
+        "n_emitters": n_emitters,
+        "pixel_clock_ghz": pixel_clock_ghz,
+        "pixel_rate_ps": pixel_rate_hz,
+        "pixel_rate_label": f"{pixel_rate_hz:.1e}",
+        "wafer_diameter_mm": wafer_diameter_mm,
+        "total_pixels": total_pixels,
+        "exposure_time_s": exposure_time_s,
+        "total_time_s": total_time_s,
+        "wph": wph,
+        "na": na,
+        "rayleigh_cd_nm": rayleigh_nm,
+        "practical_cd_nm": practical_cd_nm,
+        "pixel_dwell_ps": 1e12 / (pixel_clock_ghz * 1e9),  # ps per pixel
+    }
+
+
+# Five modifications to Lab 91's process
+LAB91_MODIFICATIONS = [
+    {
+        "id": 1,
+        "title": "Contact Patterning: Replace EBL with Near-Field VCSEL Direct Write",
+        "icon": "🔬",
+        "current": "EBL — serial, slow, electron dose (100–1000 µC/cm²) damages MoS₂ via radiolysis",
+        "proposed": "VCSEL 405nm photoresist exposure — photons don't ionize MoS₂ (3.06 eV < bandgap), sub-diffraction via near-field apertures",
+        "key_numbers": [
+            "405 nm at NA=0.7 → 290 nm resolution (sufficient for ≥300 nm contacts)",
+            "Photon energy 3.06 eV vs MoS₂ bandgap ~1.9 eV — controllable, non-destructive",
+            "Near-field apertures (50–100 nm) enable sub-diffraction when needed",
+        ],
+        "color": "#e63946",
+    },
+    {
+        "id": 2,
+        "title": "Dose Control: Shot-Noise Advantage of 405 nm Over EUV",
+        "icon": "📊",
+        "current": "EUV at 60 mJ/cm²: 163 photons per 2nm pixel → 8% shot noise",
+        "proposed": "VCSEL 405nm at 20 mJ/cm²: 1,630 photons per 2nm pixel → 2.5% shot noise (3× improvement)",
+        "key_numbers": [
+            "3× better dose uniformity per pixel vs EUV",
+            "Lower contact edge roughness (LER/LWR) floor",
+            "Tighter filament formation zone → better ON/OFF ratio reproducibility",
+        ],
+        "color": "#457b9d",
+    },
+    {
+        "id": 3,
+        "title": "Resist Chemistry: Metal-Oxide or t-SPL Resists",
+        "icon": "🧪",
+        "current": "PMMA leaves residue degrading MoS₂ contacts; AZ1512HS requires DUV + IBE cleaning",
+        "proposed": "Metal-oxide resists (HfO₂/ZrO₂) — zero organic residue, 5–10× etch resistance; or gold mask lithography for contamination-free contacts",
+        "key_numbers": [
+            "Zero organic residue after development",
+            "5–10× higher etch resistance than PMMA",
+            "Gold mask lift-off protects MoS₂ surface throughout",
+        ],
+        "color": "#2a9d8f",
+    },
+    {
+        "id": 4,
+        "title": "Control Architecture: Analog Dose Feedback at 33 ps/pixel",
+        "icon": "⚡",
+        "current": "FPGA loop latency 5–10 ns → 150–300× too slow for 33 ps pixel dwell",
+        "proposed": "Per-VCSEL analog feedback (monitor PD + TIA, sub-ps RC) + neuromorphic/optical inference for dose maps",
+        "key_numbers": [
+            "33 ps pixel dwell at 30 GHz per emitter",
+            "Per-VCSEL monitor photodiode + TIA with sub-ps response",
+            "Photonic neural network for analog dose map inference",
+        ],
+        "color": "#e9c46a",
+    },
+    {
+        "id": 5,
+        "title": "Transfer Process Integration: In-Situ Write in Transfer Chamber",
+        "icon": "🔧",
+        "current": "Separate EBL patterning step with vacuum break, atmospheric contamination at contacts",
+        "proposed": "VCSEL write head mounted in-situ in transfer tool — expose immediately after MoS₂ placement, before contamination",
+        "key_numbers": [
+            "Zero vacuum break between transfer and patterning",
+            "No resist spin, no EBL chamber needed",
+            "Real-time compensation for MoS₂ thickness variation via per-zone dose feedback",
+        ],
+        "color": "#264653",
+    },
+]
+
+
 def simulate_dose_calibration(
     emitters_per_side: int = 16,
     target_dose: float = 1.0,

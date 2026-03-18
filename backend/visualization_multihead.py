@@ -9,6 +9,10 @@ from backend.multihead_model import (
     build_multihead_array,
     compute_tile_exposure,
     simulate_dose_calibration,
+    LAB91_PROCESS,
+    LAB91_MODIFICATIONS,
+    SHOT_NOISE_COMPARISON,
+    compute_lab91_throughput,
 )
 
 
@@ -361,6 +365,239 @@ def _build_calibration_figure(cal):
     return fig
 
 
+# ── 5. Lab 91 Use Case ──────────────────────────────────────────────
+
+def _build_shot_noise_figure():
+    """Bar chart comparing EUV vs 405nm shot noise at 2nm voxel."""
+    snc = SHOT_NOISE_COMPARISON
+
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=["Photons per 2×2 nm² Voxel", "Shot Noise (%)"],
+        horizontal_spacing=0.15,
+    )
+
+    labels = ["EUV (13.5 nm)", "VCSEL (405 nm)"]
+    colors = ["#6a0dad", "#e63946"]
+    photons = [snc["euv"]["photons_per_voxel"], snc["vcsel_405"]["photons_per_voxel"]]
+    noise = [snc["euv"]["shot_noise_pct"], snc["vcsel_405"]["shot_noise_pct"]]
+
+    fig.add_trace(go.Bar(
+        x=labels, y=photons, marker_color=colors,
+        text=[str(p) for p in photons], textposition="outside",
+        showlegend=False,
+    ), row=1, col=1)
+
+    fig.add_trace(go.Bar(
+        x=labels, y=noise, marker_color=colors,
+        text=[f"{n}%" for n in noise], textposition="outside",
+        showlegend=False,
+    ), row=1, col=2)
+
+    fig.update_yaxes(title_text="Photons", row=1, col=1)
+    fig.update_yaxes(title_text="Shot Noise %", row=1, col=2)
+
+    fig.update_layout(
+        height=350, width=800,
+        margin=dict(t=50, b=40),
+    )
+    return fig
+
+
+def _build_lab91_throughput_figure():
+    """Throughput sensitivity: emitter count vs wafer time for Lab 91."""
+    emitter_counts = [1000, 2000, 4000, 8000, 12000, 16000, 24000]
+    times = []
+    wphs = []
+    for n in emitter_counts:
+        result = compute_lab91_throughput(n_emitters=n)
+        times.append(result["total_time_s"])
+        wphs.append(result["wph"])
+
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=["Wafer Time vs Emitter Count", "Throughput (wph) vs Emitter Count"],
+        horizontal_spacing=0.15,
+    )
+
+    fig.add_trace(go.Scatter(
+        x=emitter_counts, y=times,
+        mode="lines+markers",
+        line=dict(color="#e63946", width=3),
+        marker=dict(size=8),
+        name="Wafer Time",
+        hovertemplate="Emitters: %{x:,}<br>Time: %{y:.1f} s<extra></extra>",
+    ), row=1, col=1)
+
+    # Add 60 wph reference line
+    fig.add_hline(y=60, line_dash="dash", line_color="#64748b",
+                  annotation_text="60 s target", row=1, col=1)
+
+    fig.add_trace(go.Scatter(
+        x=emitter_counts, y=wphs,
+        mode="lines+markers",
+        line=dict(color="#2a9d8f", width=3),
+        marker=dict(size=8),
+        name="Throughput",
+        hovertemplate="Emitters: %{x:,}<br>WPH: %{y:.1f}<extra></extra>",
+    ), row=1, col=2)
+
+    # Add 60 wph reference line
+    fig.add_hline(y=60, line_dash="dash", line_color="#64748b",
+                  annotation_text="60 wph target", row=1, col=2)
+
+    fig.update_xaxes(title_text="Emitter Count", row=1, col=1)
+    fig.update_xaxes(title_text="Emitter Count", row=1, col=2)
+    fig.update_yaxes(title_text="Seconds per Wafer", row=1, col=1)
+    fig.update_yaxes(title_text="Wafers per Hour", row=1, col=2)
+
+    fig.update_layout(
+        height=400, width=1000,
+        margin=dict(t=50, b=40),
+        showlegend=False,
+    )
+    return fig
+
+
+def _build_lab91_modifications_html():
+    """Build HTML cards for the 5 Lab 91 process modifications."""
+    cards = ""
+    for mod in LAB91_MODIFICATIONS:
+        numbers_html = "".join(
+            f'<li style="margin:3px 0;">{n}</li>' for n in mod["key_numbers"]
+        )
+        cards += f"""
+        <div style="background:#fff; border:2px solid {mod['color']}22; border-left:4px solid {mod['color']};
+                    border-radius:10px; padding:20px; margin-bottom:14px;
+                    transition: transform 0.15s, box-shadow 0.15s;"
+             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)';"
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <span style="font-size:24px;">{mod['icon']}</span>
+                <h3 style="margin:0; font-size:15px; color:#0f172a;">{mod['title']}</h3>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:#dc2626; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Current (EBL)</div>
+                    <div style="font-size:12px; color:#64748b; line-height:1.4;">{mod['current']}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:#16a34a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">VCSEL Multiwriter</div>
+                    <div style="font-size:12px; color:#64748b; line-height:1.4;">{mod['proposed']}</div>
+                </div>
+            </div>
+            <ul style="font-size:12px; color:#475569; margin:0; padding-left:18px; line-height:1.5;">
+                {numbers_html}
+            </ul>
+        </div>"""
+    return cards
+
+
+def _build_lab91_section_html():
+    """Build the full Lab 91 use case section."""
+    throughput = compute_lab91_throughput()
+
+    # Shot noise chart
+    shot_fig = _build_shot_noise_figure()
+    shot_html = shot_fig.to_html(full_html=False, include_plotlyjs=False)
+
+    # Throughput chart
+    tp_fig = _build_lab91_throughput_figure()
+    tp_html = tp_fig.to_html(full_html=False, include_plotlyjs=False)
+
+    # Modification cards
+    mods_html = _build_lab91_modifications_html()
+
+    proc = LAB91_PROCESS
+
+    return f"""
+    <div style="background:linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color:#fff; padding:32px 40px; margin-top:24px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <span style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+                         background:#1e5f3a; color:#5be6a3; letter-spacing:0.5px;">USE CASE</span>
+            <span style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+                         background:#5f4b1e; color:#e6c45b; letter-spacing:0.5px;">2D MATERIALS</span>
+        </div>
+        <h2 style="margin:0 0 6px 0; font-size:26px; font-weight:800;">Lab 91 — MoS\u2082 RF Switch Fabrication</h2>
+        <p style="margin:0; font-size:15px; color:#94a3b8; max-width:800px; line-height:1.6;">
+            {proc['mission']}. Beachhead market: <b style="color:#fff;">{proc['beachhead']}</b>,
+            scaling to {proc['future']}. Current process uses {proc['current_process']['patterning']}
+            with {proc['current_process']['growth']} — core challenge:
+            <b style="color:#fbbf24;">{proc['current_process']['challenge']}</b>.
+        </p>
+    </div>
+
+    <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:0 0 8px 8px;
+                padding:16px 24px; margin:0 0 4px 0;">
+        <div style="display:flex; gap:32px; flex-wrap:wrap;">
+            <div style="text-align:center; min-width:140px;">
+                <div style="font-size:28px; font-weight:800; color:#16a34a;">{throughput['wph']:.0f}</div>
+                <div style="font-size:11px; color:#64748b; text-transform:uppercase;">Wafers/Hour</div>
+            </div>
+            <div style="text-align:center; min-width:140px;">
+                <div style="font-size:28px; font-weight:800; color:#16a34a;">{throughput['total_time_s']:.0f}s</div>
+                <div style="font-size:11px; color:#64748b; text-transform:uppercase;">Per 300mm Wafer</div>
+            </div>
+            <div style="text-align:center; min-width:140px;">
+                <div style="font-size:28px; font-weight:800; color:#16a34a;">{throughput['n_emitters']:,}</div>
+                <div style="font-size:11px; color:#64748b; text-transform:uppercase;">Parallel Emitters</div>
+            </div>
+            <div style="text-align:center; min-width:140px;">
+                <div style="font-size:28px; font-weight:800; color:#16a34a;">{throughput['pixel_dwell_ps']:.0f} ps</div>
+                <div style="font-size:11px; color:#64748b; text-transform:uppercase;">Pixel Dwell Time</div>
+            </div>
+            <div style="text-align:center; min-width:140px;">
+                <div style="font-size:28px; font-weight:800; color:#16a34a;">{throughput['practical_cd_nm']:.0f} nm</div>
+                <div style="font-size:11px; color:#64748b; text-transform:uppercase;">CD at NA={throughput['na']}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Five Process Modifications for Lab 91</h2>
+        <p style="font-size:13px; color:#64748b; margin:0 0 14px 0; line-height:1.5;">
+            Each modification replaces a step in Lab 91's current EBL-based MoS\u2082 RF switch
+            fabrication with a VCSEL multiwriter equivalent, addressing the core yield problem:
+            polymer residue and electron damage at the MoS\u2082 contact interface.
+        </p>
+        {mods_html}
+    </div>
+
+    <div class="section">
+        <h2>Shot Noise Advantage: 405 nm vs EUV</h2>
+        <div class="callout">
+            <b>At a 2\u00d72 nm\u00b2 voxel:</b> EUV at 60 mJ/cm\u00b2 delivers only 163 photons (8% shot noise).
+            The VCSEL at 405 nm and 20 mJ/cm\u00b2 delivers 1,630 photons (2.5% shot noise) — a
+            <b>10\u00d7 photon count</b> and <b>3\u00d7 noise reduction</b> per pixel.
+            This directly improves contact edge roughness and atomristor switching reproducibility.
+        </div>
+        <div class="plot-container">{shot_html}</div>
+    </div>
+
+    <div class="section">
+        <h2>Lab 91 Throughput: Emitter Scaling</h2>
+        <div class="callout">
+            <b>Target:</b> 60+ wafers per hour on 300 mm wafers.
+            At {throughput['n_emitters']:,} emitters running at {throughput['pixel_clock_ghz']:.0f} GHz each,
+            total pixel rate is {throughput['pixel_rate_label']} px/s.
+            A full 300 mm wafer completes in <b>{throughput['total_time_s']:.0f} seconds</b>
+            ({throughput['wph']:.0f} wph) including 20% stepping overhead.
+        </div>
+        <div class="plot-container">{tp_html}</div>
+    </div>
+
+    <div class="section">
+        <div class="callout" style="background:#fef3c7; border-color:#f59e0b; color:#92400e;">
+            <b>Transfer Integration:</b> The VCSEL write head mounts in-situ in Lab 91's transfer tool.
+            MoS\u2082 monolayer placement \u2192 immediate resist exposure \u2192 no vacuum break,
+            no atmospheric contamination, no resist spin, no EBL chamber.
+            Per-zone VCSEL dose feedback compensates for MoS\u2082 thickness variation across
+            grain boundaries in real time.
+        </div>
+    </div>
+    """
+
+
 # ── Architecture cards HTML ──────────────────────────────────────────
 
 def _arch_cards_html(selected_key):
@@ -529,5 +766,7 @@ def build_multihead_html(
         </div>
         <div class="plot-container">{cal_html}</div>
     </div>
+
+    {_build_lab91_section_html()}
 </body>
 </html>"""

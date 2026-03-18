@@ -4,6 +4,10 @@ from backend.multihead_model import (
     build_multihead_array,
     compute_tile_exposure,
     simulate_dose_calibration,
+    LAB91_PROCESS,
+    LAB91_MODIFICATIONS,
+    SHOT_NOISE_COMPARISON,
+    compute_lab91_throughput,
 )
 from backend.visualization_multihead import build_multihead_html
 
@@ -81,3 +85,46 @@ def test_multihead_html_all_architectures():
     for key in ["A", "B", "C"]:
         html = build_multihead_html(arch_key=key)
         assert ARCHITECTURES[key]["name"] in html
+
+
+def test_lab91_throughput_meets_target():
+    result = compute_lab91_throughput(n_emitters=12_000)
+    assert result["wph"] >= 60  # must meet 60 wph target
+    assert result["total_time_s"] <= 60  # under 60 seconds per wafer
+    assert result["pixel_dwell_ps"] > 0
+
+
+def test_lab91_throughput_scales_with_emitters():
+    r1 = compute_lab91_throughput(n_emitters=4_000)
+    r2 = compute_lab91_throughput(n_emitters=12_000)
+    assert r2["wph"] > r1["wph"]
+    assert r2["total_time_s"] < r1["total_time_s"]
+
+
+def test_lab91_resolution_sufficient_for_contacts():
+    result = compute_lab91_throughput()
+    # 405nm at NA=0.7 must resolve Lab 91's ≥300nm contacts
+    assert result["practical_cd_nm"] <= LAB91_PROCESS["contact_cd_nm"]
+
+
+def test_lab91_modifications_complete():
+    assert len(LAB91_MODIFICATIONS) == 5
+    for mod in LAB91_MODIFICATIONS:
+        assert "title" in mod
+        assert "current" in mod
+        assert "proposed" in mod
+        assert len(mod["key_numbers"]) >= 2
+
+
+def test_shot_noise_vcsel_better_than_euv():
+    snc = SHOT_NOISE_COMPARISON
+    assert snc["vcsel_405"]["photons_per_voxel"] > snc["euv"]["photons_per_voxel"]
+    assert snc["vcsel_405"]["shot_noise_pct"] < snc["euv"]["shot_noise_pct"]
+
+
+def test_multihead_html_contains_lab91():
+    html = build_multihead_html()
+    assert "Lab 91" in html
+    assert "MoS" in html
+    assert "Shot Noise" in html
+    assert "Process Modifications" in html
