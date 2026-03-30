@@ -692,7 +692,7 @@ def build_multihead_html(
 
     # Array figure
     array_fig = _build_array_figure(array)
-    array_html = array_fig.to_html(full_html=False, include_plotlyjs="cdn")
+    array_html = array_fig.to_html(full_html=False, include_plotlyjs=False)
 
     # Architecture comparison
     arch_fig = _build_arch_comparison_figure()
@@ -725,6 +725,7 @@ def build_multihead_html(
 <html>
 <head>
     <title>Multi-Head Writer Array</title>
+    <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
 </head>
 <body>

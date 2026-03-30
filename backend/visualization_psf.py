@@ -510,7 +510,7 @@ def build_psf_synthesis_html(
 
     # Build all figures
     heatmap_fig = _build_psf_heatmaps(comp, dx_nm)
-    heatmap_html = heatmap_fig.to_html(full_html=False, include_plotlyjs="cdn")
+    heatmap_html = heatmap_fig.to_html(full_html=False, include_plotlyjs=False)
 
     profile_fig = _build_profile_figure(comp, dx_nm)
     profile_html = profile_fig.to_html(full_html=False, include_plotlyjs=False)
@@ -541,6 +541,7 @@ def build_psf_synthesis_html(
 <html>
 <head>
     <title>PSF Synthesis — Spatiotemporal Compositing</title>
+    <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
 </head>
 <body>

@@ -51,7 +51,7 @@ def build_pipeline_figure(stages, title="EUV Lithography Simulation Pipeline"):
 def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipeline"):
     """Build full HTML page with plotly figure and parameter controls."""
     fig = build_pipeline_figure(stages, title=title)
-    plot_html = fig.to_html(full_html=False, include_plotlyjs="cdn")
+    plot_html = fig.to_html(full_html=False, include_plotlyjs=False)
 
     dose = params.get("dose", 15.0)
     line_width = params.get("line_width", 20)
@@ -65,6 +65,7 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
 <html>
 <head>
     <title>EUV Litho Pipeline</title>
+    <script src="plotly.min.js"></script>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }}
         .nav {{ background: #1a1a2e; padding: 8px 24px; display: flex; gap: 16px; align-items: center; }}

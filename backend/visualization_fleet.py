@@ -357,7 +357,7 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
     scaling_scenarios = compute_scaling_table(euv_power_mw=10.0)
     scaling_fig = build_scaling_figure(scaling_scenarios)
 
-    sensitivity_html = sensitivity_fig.to_html(full_html=False, include_plotlyjs="cdn")
+    sensitivity_html = sensitivity_fig.to_html(full_html=False, include_plotlyjs=False)
     waterfall_html = waterfall_fig.to_html(full_html=False, include_plotlyjs=False)
     scaling_html = scaling_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -375,6 +375,7 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
 <html>
 <head>
     <title>{title}</title>
+    <script src="plotly.min.js"></script>
     <style>
         * {{ box-sizing: border-box; }}
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }}

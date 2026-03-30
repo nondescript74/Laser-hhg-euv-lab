@@ -456,7 +456,7 @@ def build_11dof_html():
 <html>
 <head>
     <title>11-DOF Writer Head Architecture</title>
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
 </head>
 <body>

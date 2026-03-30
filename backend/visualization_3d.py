@@ -604,7 +604,7 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
 <head>
     <meta charset="utf-8">
     <title>{title}</title>
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="plotly.min.js"></script>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }}
         .nav {{ background: #1a1a2e; padding: 8px 24px; display: flex; gap: 16px; align-items: center; }}
