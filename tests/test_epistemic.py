@@ -181,3 +181,107 @@ def test_system_state_carries_tier_field():
     payload = resp.json()
     assert payload["epistemic_tier"] == "architecture"
     assert "tier_note" in payload
+
+
+# ---------------------------------------------------------------------------
+# P1 page-tier-panel discipline
+# Every visualization page that previously had no visible tier badge
+# must now carry a per-page tier panel injected via page_tier_panel().
+# ---------------------------------------------------------------------------
+
+def test_psf_page_has_tier_panel_and_scope_banner():
+    resp = client.get("/api/psf-synthesis")
+    body = resp.text
+    assert "epi-banner" in body
+    assert "PSF Synthesis (parameterized)" in body
+    assert 'data-tier="parameterized"' in body
+    assert "Scope &amp; epistemic tier" in body
+
+
+def test_multihead_page_has_tier_panel_and_scope_banner():
+    resp = client.get("/api/multihead")
+    body = resp.text
+    assert "epi-banner" in body
+    assert "Multi-Head Writer Array (architectural concept)" in body
+    assert 'data-tier="architecture"' in body
+    assert "Scope &amp; epistemic tier" in body
+    # Old chip-scale-replaces-ASML phrasing must be gone from this page.
+    assert "matches ASML throughput" not in body
+
+
+def test_fleet_page_has_tier_panel_and_scope_banner():
+    resp = client.get("/api/fleet-dashboard")
+    body = resp.text
+    assert "epi-banner" in body
+    assert "Platform Economics" in body
+    assert 'data-tier="architecture"' in body
+    assert "Scope &amp; epistemic tier" in body
+    # Hard-removed overclaim string.
+    assert "replaces a room-sized $380M ASML tool" not in body
+
+
+def test_writer_head_page_has_tier_panel_and_scope_banner():
+    resp = client.get("/api/writer-head")
+    body = resp.text
+    assert "epi-banner" in body
+    assert "11-DOF Writer Head (architectural concept)" in body
+    assert 'data-tier="architecture"' in body
+    assert "Scope &amp; epistemic tier" in body
+
+
+# ---------------------------------------------------------------------------
+# Citation discipline: HHG-facing pages must cite the new primary sources
+# ---------------------------------------------------------------------------
+
+# Distinctive substrings drawn from each reference's "full" text as
+# rendered by build_references_footer(). If references.py is edited,
+# these strings may need updating.
+HHG_PRIMARY_REF_FULLTEXT = {
+    "Shiner_2009":      "Shiner, A.D. et al.",
+    "Lewenstein_1994":  "Lewenstein, M., Balcou",
+    "Wikmark_2022":     "Wikmark, H. et al.",
+    "KMLabs_XUUS4":     "Coherent / KMLabs XUUS-4 white paper",
+    "Carstens_2024":    "Carstens, H. et al.",
+    "ELI_ALPS_2025":    "ELI-ALPS / SYLOS team",
+    "ASML_LPP":         "ASML laser-produced-plasma (LPP) EUV source",
+    "Corkum_1993":      "Corkum, P.B.",
+    "ArXiv_2509_02867": "Open-source C++ HHG simulation program",
+}
+
+
+def test_hhg_analytical_page_cites_primary_sources():
+    body = client.get("/api/hhg-analytical").text
+    for key in [
+        "Shiner_2009",
+        "Lewenstein_1994",
+        "KMLabs_XUUS4",
+        "Wikmark_2022",
+        "ASML_LPP",
+    ]:
+        needle = HHG_PRIMARY_REF_FULLTEXT[key]
+        assert needle in body, (
+            f"Expected reference fragment '{needle}' ({key}) on HHG analytical page"
+        )
+
+
+def test_wavelength_bridge_page_cites_primary_sources():
+    body = client.get("/api/wavelength-bridge").text
+    for key in ["Shiner_2009", "Lewenstein_1994", "Wikmark_2022", "ASML_LPP"]:
+        needle = HHG_PRIMARY_REF_FULLTEXT[key]
+        assert needle in body, (
+            f"Expected reference fragment '{needle}' ({key}) on wavelength-bridge page"
+        )
+
+
+def test_visualize_3d_page_cites_lpp_gap_and_kmlabs_anchor():
+    body = client.get("/api/visualize-3d").text
+    for key in ["ASML_LPP", "KMLabs_XUUS4", "Carstens_2024"]:
+        needle = HHG_PRIMARY_REF_FULLTEXT[key]
+        assert needle in body, f"Expected reference fragment '{needle}' ({key}) on /api/visualize-3d"
+
+
+def test_fleet_dashboard_cites_lpp_gap_anchor():
+    body = client.get("/api/fleet-dashboard").text
+    for key in ["ASML_LPP", "Shiner_2009"]:
+        needle = HHG_PRIMARY_REF_FULLTEXT[key]
+        assert needle in body, f"Expected reference fragment '{needle}' ({key}) on /api/fleet-dashboard"

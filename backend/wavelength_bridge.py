@@ -26,7 +26,13 @@ from dataclasses import dataclass
 
 import plotly.graph_objects as go
 
-from backend.epistemic import EpistemicTier, TierLabel
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    TierLabel,
+    page_tier_panel,
+)
 from backend.hhg_analytical import (
     HC_EV_NM,
     cutoff_energy,
@@ -274,11 +280,23 @@ def build_wavelength_bridge_html(*, embed_only: bool = False) -> str:
     if embed_only:
         return plot_html
 
+    bridge_panel = page_tier_panel(
+        EpistemicTier.ARCHITECTURE,
+        page_title="Wavelength Bridge (architectural diagram)",
+        note=(
+            "Driver bands and HHG-cutoff arrows are <b>analytical</b> "
+            "(3.17 U_p + I_p); spectral regions and industrial anchors "
+            "are <b>literature-derived</b>; repo operating-region "
+            "overlays are <b>architecture-level</b> framing only. The "
+            "vdW-cavity DUV regime and the HHG EUV regime are "
+            "physically distinct and non-overlapping."
+        ),
+    )
     return f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Wavelength bridge - Laser-HHG-EUV Lab</title>
+    <title>Wavelength bridge [ARCHITECTURE] - Laser-HHG-EUV Lab</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                margin: 0; background: #f8fafc; color: #1e293b; }}
@@ -289,6 +307,7 @@ def build_wavelength_bridge_html(*, embed_only: bool = False) -> str:
         .section {{ padding: 18px 24px; }}
         .section p {{ font-size: 13px; line-height: 1.55; max-width: 900px; color: #334155; }}
     </style>
+    <style>{EPISTEMIC_CSS}</style>
 </head>
 <body>
     <div class="nav">
@@ -297,7 +316,13 @@ def build_wavelength_bridge_html(*, embed_only: bool = False) -> str:
         <a href="/api/visualize-3d">3D Pipeline</a>
         <a href="/api/wavelength-bridge" class="active">Wavelength Bridge</a>
         <a href="/api/hhg-analytical">HHG Calculators</a>
+        <a href="/api/fleet-dashboard">Platform Economics</a>
+        <a href="/api/multihead">Multi-Head Array</a>
+        <a href="/api/psf-synthesis">PSF Synthesis</a>
+        <a href="/api/writer-head">11-DOF Head</a>
     </div>
+    {SCOPE_BANNER_HTML}
+    {bridge_panel}
     <div class="section">
         <h2>Wavelength bridge: driver \u2192 HHG \u2192 DUV/VUV/EUV</h2>
         <p>This figure positions the two companion repositories on a single
