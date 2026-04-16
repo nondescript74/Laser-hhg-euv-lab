@@ -11,7 +11,29 @@ from backend.fleet_economics import (
     MARKET_SEGMENTS,
     PLATFORM_CONFIGS,
 )
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    page_tier_panel,
+)
 import math
+
+
+_FLEET_TIER_PANEL = page_tier_panel(
+    EpistemicTier.ARCHITECTURE,
+    page_title="Platform Economics &amp; ASML Comparison (architectural)",
+    note=(
+        "Throughput, cost, and power numbers below assume a "
+        "<b>per-head EUV power that is treated as an input parameter</b>, "
+        "not a measured delivered flux. The chip-scale architecture is "
+        "<b>not</b> represented here as a deployed wafer-exposure "
+        "platform competitive with ASML's LPP source. ASML reference "
+        "values are <span style='color:#fbbf24;font-weight:700;'>LITERATURE</span>; "
+        "platform-side numbers are an <span style='color:#a855f7;font-weight:700;'>"
+        "ARCHITECTURE</span> sensitivity table."
+    ),
+)
 
 
 def _format_power(w):
@@ -231,7 +253,7 @@ def build_waterfall_figure():
 
     fig.update_layout(
         height=600, width=1300, showlegend=False,
-        title_text="Power Loss Chain: ASML Tin-Plasma vs. Coherent Chip-Scale Source",
+        title_text="Power Loss Chain (ARCHITECTURE): ASML LPP vs. illustrative chip-scale source",
         margin=dict(t=60, b=120),
     )
     return fig
@@ -348,7 +370,7 @@ def _build_hierarchy_html(config_name):
     </div>"""
 
 
-def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & ASML Comparison"):
+def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & ASML Comparison [ARCHITECTURE]"):
     """Build full HTML page with platform economics dashboard."""
     sensitivity_fig = build_sensitivity_figure(scenarios)
     waterfall_fig = build_waterfall_figure()
@@ -469,11 +491,15 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
     <div class="nav">
         <a href="/api/visualize">2D Process Sim</a>
         <a href="/api/visualize-3d">3D Pipeline</a>
+        <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+        <a href="/api/hhg-analytical">HHG Calculators</a>
         <a href="/api/fleet-dashboard" class="active">Platform Economics</a>
         <a href="/api/multihead">Multi-Head Array</a>
         <a href="/api/psf-synthesis">PSF Synthesis</a>
         <a href="/api/writer-head">11-DOF Head</a>
     </div>
+    {SCOPE_BANNER_HTML}
+    {_FLEET_TIER_PANEL}
 
     <div class="hero">
         <div class="hero-stat">
@@ -518,11 +544,17 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
     </form>
 
     <div class="callout-blue">
-        <b>Integrated Platform Architecture:</b> Each writer head is a 3D optical structure built from 2D planar
-        semiconductor processes with 11 degrees of freedom (beam XY, focus, intensity, polarization, waveguide routing,
-        optical switching, wavelength, pulse timing, dose dwell, thermal compensation). Heads are batch-fabricated
-        ~1,000 per wafer run and robotically assembled in cleanrooms. One desk-sized platform replaces
-        a room-sized $380M ASML tool.
+        <b>Architectural-only sensitivity comparison.</b> Each writer
+        head is described as a 3D optical structure with 11 degrees of
+        freedom; the per-head EUV power is an <i>input parameter</i>
+        on this dashboard, not a measured output of any HHG source
+        modelled in this repo. The chip-scale architecture is shown
+        alongside ASML reference values to make the order-of-magnitude
+        comparison visible &mdash; this is a portfolio framing, not a
+        replacement claim. ASML's LPP source delivers 250 W at 13.5 nm
+        intermediate focus; tabletop HHG delivers nanowatts to
+        microwatts at the same wavelength, and the gap is physical
+        (conversion efficiency, duty cycle), not engineering.
     </div>
 
     <div class="section">
@@ -556,8 +588,14 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
     <div class="section">
         <h2>Power Loss Chain Comparison</h2>
         <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0;">
-            ASML\u2019s incoherent tin-plasma source loses 99.99993% of input power before reaching the wafer.
-            A coherent chip-scale HHG source eliminates the collection problem entirely.
+            ASML\u2019s LPP power-loss chain is shown alongside an
+            <b>illustrative</b> coherent chip-scale source chain. The
+            chip-scale numbers are an architectural sketch, not a
+            measured power budget; coherent HHG sources do not
+            literally <em>eliminate</em> collection losses (mirror
+            reflectivity and filter transmission still apply &mdash; see
+            the <a href="/api/hhg-analytical" style="color:#2563eb;">HHG
+            Calculators</a> page for the analytical R^N \u00b7 T^M product).
         </p>
         <div class="plot-container">{waterfall_html}</div>
     </div>

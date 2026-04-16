@@ -196,7 +196,10 @@ def build_3d_pipeline_figure(pipeline, params=None):
             camera=dict(eye=dict(x=2.0, y=0.6, z=0.3), up=dict(x=0, y=0, z=1)),
             bgcolor="#fafafa",
         ),
-        title=dict(text="EUV Lithography Optical Pipeline (VCSEL \u2192 HHG \u2192 Wafer)"),
+        title=dict(text=(
+            "HHG Generation Chain (Driver \u2192 Gas Cell \u2192 Filter \u2192 Mirror \u2192 Application)"
+            "  \u2014  [ARCHITECTURE]"
+        )),
         height=900, width=1500,
         showlegend=True,
         legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.8)"),
@@ -582,7 +585,7 @@ def _build_platform_js(geometry_json):
 
 # -- HTML page builder -------------------------------------------------
 
-def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer Platform"):
+def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer Platform [ARCHITECTURE]"):
     """Build full HTML page with 3D platform hierarchy and tunable controls."""
     geometry = _get_platform_geometry(pipeline, params)
     geometry_json = json.dumps(geometry)
@@ -635,6 +638,8 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
     <div class="nav">
         <a href="/api/visualize">2D Process Sim</a>
         <a href="/api/visualize-3d" class="active">3D Pipeline</a>
+        <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+        <a href="/api/hhg-analytical">HHG Calculators</a>
         <a href="/api/fleet-dashboard">Platform Economics</a>
         <a href="/api/multihead">Multi-Head Array</a>
         <a href="/api/psf-synthesis">PSF Synthesis</a>
@@ -642,13 +647,21 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
     </div>
 
     <div class="hero">
-        <h2>Integrated Multi-Head Writer Platform</h2>
+        <h2>Integrated Multi-Head Writer Platform <span style="background:#a855f7;color:#fff;font-size:11px;padding:2px 8px;border-radius:3px;letter-spacing:0.5px;vertical-align:middle;">ARCHITECTURE</span></h2>
         <p>
-            Not a single beam path \u2014 a <b>semiconductor-replicated array</b> of 11-DOF writer heads.
-            Each ~2\u00d72 mm die contains the full optical pipeline (VCSEL \u2192 HHG \u2192 focusing optic)
-            as a 3D stack built from 2D planar layers. 16 heads tile onto one 33\u00d733 mm package,
-            10 packages mount on a module, and the complete platform fits on a desk.
-            Use the zoom slider below to drill from platform down to a single writer head.
+            <b>Architectural concept only.</b> This 3D view is an
+            <i>architecture-level</i> system diagram that places an HHG
+            generation chain (NIR/MIR driver \u2192 focusing optic \u2192 gas
+            cell \u2192 metal filter \u2192 Mo/Si mirror \u2192 application plane)
+            inside a multi-head packaging concept. It is not a built
+            device, and not a claim that gas-jet HHG is competitive with
+            laser-produced-plasma (LPP) EUV sources for high-volume
+            manufacturing. The HHG cutoff, single-atom efficiency, and
+            beamline transmission shown alongside this view are computed
+            from the analytical / parameterized models in
+            <code>backend/hhg_analytical.py</code>; see the
+            <a href="/api/wavelength-bridge" style="color:#93c5fd;">wavelength-bridge</a>
+            page for the spectral-region context.
         </p>
     </div>
 
@@ -695,14 +708,19 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
     {platform_js}
 
     <div class="callout">
-        <b>Semiconductor replication is the key.</b> Each writer head is batch-fabricated
-        ~1,000 per wafer run on standard 200/300 mm fab lines. The same 11-DOF optical
-        pipeline that runs as a single beam in the
-        <a href="/api/writer-head" style="color:#2563eb;font-weight:700;">11-DOF head view</a>
-        gets replicated 160\u00d7 in the
-        <a href="/api/multihead" style="color:#2563eb;">multi-head array</a>,
-        producing a desk-sized platform that matches ASML throughput at 0.2% of the cost.
-        See <a href="/api/fleet-dashboard" style="color:#2563eb;">Platform Economics</a> for the full comparison.
+        <b>Scope.</b> This visualisation is an <i>architecture-level</i>
+        system diagram. The HHG cutoff, single-atom efficiency, and
+        beamline transmission shown above are computed analytically; the
+        platform-level packaging shown below is illustrative only and
+        carries no device-flux claim. Tabletop HHG sources deliver
+        coherent EUV photon flux that is many orders of magnitude below
+        ASML's laser-produced-plasma (LPP) source (250 W at intermediate
+        focus, 13.5 nm); the gap is physical (conversion efficiency,
+        duty cycle), not engineering. Defensible HHG use cases are
+        coherent diffractive imaging (CDI), ptychography, actinic EUV
+        mask inspection, and angle-resolved photoemission (ARPES) - see
+        the <a href="/api/wavelength-bridge" style="color:#2563eb;">wavelength-bridge</a>
+        figure for spectral context.
     </div>
 </body>
 </html>"""

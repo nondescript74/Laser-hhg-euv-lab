@@ -14,6 +14,27 @@ from backend.multihead_model import (
     SHOT_NOISE_COMPARISON,
     compute_lab91_throughput,
 )
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    page_tier_panel,
+)
+
+
+_MULTIHEAD_TIER_PANEL = page_tier_panel(
+    EpistemicTier.ARCHITECTURE,
+    page_title="Multi-Head Writer Array (architectural concept)",
+    note=(
+        "Tile geometry, stitching zones, and per-site dose calibration "
+        "are an <b>architecture-level</b> packaging concept. The "
+        "throughput numbers assume the source can deliver the "
+        "requested per-head power; <b>they are not derived from a "
+        "delivered HHG photon flux.</b> See <a href='/api/hhg-analytical' "
+        "style='color:#2563eb;'>HHG Calculators</a> for the actual "
+        "source-side budget."
+    ),
+)
 
 
 def _hex_to_rgba(hex_color, alpha=1.0):
@@ -29,6 +50,8 @@ _NAV = """
 <div class="nav">
     <a href="/api/visualize">2D Process Sim</a>
     <a href="/api/visualize-3d">3D Pipeline</a>
+    <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+    <a href="/api/hhg-analytical">HHG Calculators</a>
     <a href="/api/fleet-dashboard">Platform Economics</a>
     <a href="/api/multihead" class="active">Multi-Head Array</a>
     <a href="/api/psf-synthesis">PSF Synthesis</a>
@@ -724,12 +747,15 @@ def build_multihead_html(
     return f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>Multi-Head Writer Array</title>
+    <title>Multi-Head Writer Array [ARCHITECTURE]</title>
     <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
+    <style>{EPISTEMIC_CSS}</style>
 </head>
 <body>
     {_NAV}
+    {SCOPE_BANNER_HTML}
+    {_MULTIHEAD_TIER_PANEL}
 
     <form class="controls" method="get" action="/api/multihead">
         <div class="control-group">
@@ -768,10 +794,14 @@ def build_multihead_html(
     </form>
 
     <div class="callout" style="background:#eff6ff; border-color:#93c5fd; color:#1e40af; margin:16px 24px;">
-        <b>Each writer head is an 11-DOF optical engine</b> built from 2D planar semiconductor
-        layers: emitters, MEMS steering, waveguides, polarizers, Bragg diffractor mirrors,
-        phase modulators, and vacuum containment. Batch-fabricated ~1,000 per wafer run.
-        <a href="/api/writer-head" style="color:#2563eb; font-weight:700;">Explore the 3D structure \u2192</a>
+        <b>Architectural concept.</b> The 11-DOF writer head is an
+        <i>illustrative</i> packaging concept. Layer counts, batch-fab
+        throughput, and per-head DOF are diagram-level claims; nothing
+        on this page measures a built optical engine. The HHG-source
+        delivery problem (gas-jet conversion efficiency, beamline
+        transmission) is handled separately on the
+        <a href="/api/hhg-analytical" style="color:#2563eb; font-weight:700;">HHG Calculators</a>
+        page.
     </div>
 
     <div class="section">

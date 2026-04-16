@@ -18,6 +18,12 @@ from backend.psf_synthesis import (
     measure_fwhm,
     SynthesisComparison,
 )
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    page_tier_panel,
+)
 
 
 # ── Shared nav + style ──────────────────────────────────────────────
@@ -26,11 +32,25 @@ _NAV = """
 <div class="nav">
     <a href="/api/visualize">2D Process Sim</a>
     <a href="/api/visualize-3d">3D Pipeline</a>
+    <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+    <a href="/api/hhg-analytical">HHG Calculators</a>
     <a href="/api/fleet-dashboard">Platform Economics</a>
     <a href="/api/multihead">Multi-Head Array</a>
     <a href="/api/psf-synthesis" class="active">PSF Synthesis</a>
     <a href="/api/writer-head">11-DOF Head</a>
 </div>"""
+
+_PSF_TIER_PANEL = page_tier_panel(
+    EpistemicTier.PARAMETERIZED,
+    page_title="PSF Synthesis (parameterized)",
+    note=(
+        "Gaussian PSF compositing with NNLS / Powell optimisation and "
+        "Gerchberg-Saxton phase retrieval [cite: 51]. Metrics show a "
+        "<b>parameterized</b> PSF model and its trade-offs; they are "
+        "not a measured exposure of a built optical head. The "
+        "lambda/NA scale is set by the chosen native sigma."
+    ),
+)
 
 _CSS = """
 * { box-sizing: border-box; }
@@ -540,12 +560,15 @@ def build_psf_synthesis_html(
     return f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>PSF Synthesis — Spatiotemporal Compositing</title>
+    <title>PSF Synthesis — Spatiotemporal Compositing [PARAMETERIZED]</title>
     <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
+    <style>{EPISTEMIC_CSS}</style>
 </head>
 <body>
     {_NAV}
+    {SCOPE_BANNER_HTML}
+    {_PSF_TIER_PANEL}
 
     <form class="controls" method="get" action="/api/psf-synthesis">
         <div class="control-group">
@@ -654,7 +677,9 @@ def build_psf_synthesis_html(
     </div>
 
     <div style="text-align: center; padding: 32px; font-size: 12px; color: #94a3b8;">
-        Laser-HHG-EUV Lab &middot; PSF Synthesis Patent Demo &middot; buildzmarter-ai
+        Laser-HHG-EUV Lab &middot; PSF Synthesis (parameterized model) &middot; buildzmarter-ai
+        <br><span style="color:#64748b;">All metrics on this page are computed from a Gaussian native
+        PSF and a Powell / NNLS optimiser. Tier: PARAMETERIZED.</span>
     </div>
 </body>
 </html>"""

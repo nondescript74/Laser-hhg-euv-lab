@@ -23,6 +23,28 @@ Output PSF coupled via index-matching immersion fluid (matched NA for DUV/EUV).
 import plotly.graph_objects as go
 import numpy as np
 
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    page_tier_panel,
+)
+
+
+_11DOF_TIER_PANEL = page_tier_panel(
+    EpistemicTier.ARCHITECTURE,
+    page_title="11-DOF Writer Head (architectural concept)",
+    note=(
+        "An <b>architecture-level</b> exploded-view of an integrated "
+        "writer-head concept. Layer counts, thicknesses, and "
+        "manufacturing claims are diagram-level; <b>nothing on this "
+        "page measures a built device.</b> The HHG source that would "
+        "feed such a head is modelled separately on the "
+        "<a href='/api/hhg-analytical' style='color:#2563eb;'>HHG "
+        "Calculators</a> page."
+    ),
+)
+
 
 # ── DOF definitions ──────────────────────────────────────────────────
 
@@ -381,6 +403,8 @@ _NAV = """
 <div class="nav">
     <a href="/api/visualize">2D Process Sim</a>
     <a href="/api/visualize-3d">3D Pipeline</a>
+    <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+    <a href="/api/hhg-analytical">HHG Calculators</a>
     <a href="/api/fleet-dashboard">Platform Economics</a>
     <a href="/api/multihead">Multi-Head Array</a>
     <a href="/api/psf-synthesis">PSF Synthesis</a>
@@ -455,12 +479,15 @@ def build_11dof_html():
     return f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>11-DOF Writer Head Architecture</title>
+    <title>11-DOF Writer Head Architecture [ARCHITECTURE]</title>
     <script src="plotly.min.js"></script>
     <style>{_CSS}</style>
+    <style>{EPISTEMIC_CSS}</style>
 </head>
 <body>
     {_NAV}
+    {SCOPE_BANNER_HTML}
+    {_11DOF_TIER_PANEL}
 
     <div class="hero-banner">
         <h1>11 Degrees of Freedom Writer Head</h1>
@@ -491,12 +518,14 @@ def build_11dof_html():
     </div>
 
     <div class="callout-blue">
-        <b>Manufacturing:</b> All layers are fabricated using standard 2D planar semiconductor
-        processes (CMOS, III-V epitaxy, PECVD, ALD) on 200/300mm wafers, then assembled
-        robotically in cleanroom. Bragg diffractor mirrors provide wavelength selection
-        across all three architectures. Vacuum containment shell enables EUV operation.
-        Output PSF is coupled to resist via index-matching immersion fluid at the appropriate
-        NA for DUV (n\u22481.44 water) or EUV (vacuum/thin film).
+        <b>Architectural manufacturing concept.</b> Layer choices and
+        process notes are illustrative; the page asserts no built
+        prototype. Vacuum containment is an architectural requirement
+        for EUV operation, not a demonstrated subsystem of this repo.
+        For the upstream HHG source physics that would feed such a
+        head, see the <a href="/api/hhg-analytical" style="color:#2563eb;">HHG
+        Calculators</a> and <a href="/api/wavelength-bridge" style="color:#2563eb;">Wavelength
+        Bridge</a> pages.
     </div>
 
     <div class="section">

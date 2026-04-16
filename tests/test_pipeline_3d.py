@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from backend.hhg_model import (
     get_ionization_potential,
     get_max_harmonic_order,
@@ -14,9 +15,12 @@ from backend.visualization_3d import (
 
 
 def test_ionization_potentials():
-    assert get_ionization_potential("Ar") == 15.76
-    assert get_ionization_potential("Ne") == 21.56
-    assert get_ionization_potential("Xe") == 12.13
+    # Values updated to NIST-precise figures in
+    # backend/hhg_analytical.py; tolerate the third decimal for
+    # backward-compat assertions.
+    assert get_ionization_potential("Ar") == pytest.approx(15.76, abs=0.01)
+    assert get_ionization_potential("Ne") == pytest.approx(21.565, abs=0.01)
+    assert get_ionization_potential("Xe") == pytest.approx(12.13, abs=0.01)
 
 
 def test_max_harmonic_order():

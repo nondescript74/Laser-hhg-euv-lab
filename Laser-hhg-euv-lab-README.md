@@ -1,76 +1,116 @@
-# Laser-HHG-EUV Lab
+# Laser-HHG-EUV Lab — Module Reference
 
-Physics simulation backend for a chip-scale coherent EUV lithography source. FastAPI server with interactive Plotly visualizations, supporting patent claims for PSF synthesis via spatiotemporal exposure compositing.
+**Parameterized HHG / EUV architectural modeling lab.** This document
+maps the backend modules and explains the epistemic-tier discipline
+that governs every output. For the project-level overview and scope
+disclaimers, see `README.md`.
 
-## Overview
+## Repositioning
 
-This repo contains the computational models and visualization engines for a distributed EUV lithography architecture. The backend simulates the full optical pipeline from VCSEL sources through high-harmonic generation to wafer exposure, including resist chemistry, dose optimization, and fleet economics.
+The repository was previously framed as a "Chip-Scale Coherent EUV
+Source" with patent claims for a programmable lithography platform.
+That framing conflates four physically distinct things:
 
-Key capabilities:
+1. The EUV-source problem solved by ASML's LPP (250 W at 13.5 nm
+   intermediate focus).
+2. Tabletop HHG sources (nanowatts to microwatts at 13.5 nm; many
+   orders of magnitude below LPP).
+3. The vdW intracavity DUV modulation architecture (193 / 248 nm,
+   downstream of any EUV stage and physically separate).
+4. Multi-beam writer-array packaging (a separate engineering concern
+   from the upstream photon source).
 
-- **PSF Synthesis** — build arbitrary effective PSFs from rapidly dithered sub-exposures using incoherent and coherent compositing regimes. Coupled (joint) optimization of spatial offsets + temporal intervals demonstrates the Claim 4 patent novelty: synergistic cross-coupling between spatial and temporal degrees of freedom.
-- **Multi-Head Writer Array** — tiled lithography architecture with stitching zone calculation, per-site dose calibration, and three architecture variants (A/B/C).
-- **3D Optical Pipeline** — VCSEL → HHG gas cell → EUV beam propagation with phase matching, power budget, and gas supply modeling.
-- **2D Process Simulation** — aerial image formation (partially coherent), chemical amplification resist model, PEB diffusion (Fick's law), and Mack dissolution rate.
-- **Fleet Economics** — cost-of-ownership modeling, throughput analysis, ASML power comparison, and market segment breakdown.
-- **Phoenix Engine** — adaptive dose correction with QRL-based hypothesis tracking and gating.
+The current framing positions the repo as a *generation-side
+architectural modeling lab* that complements `vdw-polaritonics-lab` at
+the front-end driver-conditioning interface. The strongest defensible
+claim is that the same programmable-control-plane logic that operates
+on the cavity-amplified DUV source can, at the driver-laser front end,
+apply spectral and temporal conditioning that systematically shifts the
+harmonic output of a connected HHG stage. The HHG stage is the EUV
+generation mechanism; the cavity is not at EUV.
 
-## Quickstart
+## Epistemic-Tier Discipline
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app:app --reload
+Every quantitative or qualitative output in this repository carries an
+explicit tier label rendered as a colored badge in the UI:
+
+```
+[ANALYTICAL]   green    Closed-form, exact within stated assumptions.
+[PARAMETERIZED] blue    Single-atom / small-system response from a model.
+[ARCHITECTURE] purple   System diagram or control-plane narrative.
+[LITERATURE]   amber    Quoted from a cited paper or industrial datasheet.
 ```
 
-Open `http://127.0.0.1:8000` for the dashboard, or `http://127.0.0.1:8000/docs` for the API docs.
+The taxonomy is implemented in `backend/epistemic.py`:
 
-## API Endpoints
+* `EpistemicTier`     — four-level enum
+* `TierLabel`          — tier + claim + optional note
+* `render_badge`       — inline HTML badge
+* `render_label`       — full HTML for a labelled claim
+* `render_key`         — four-tier legend
+* `inject_epistemic_assets` — adds CSS + scope banner to a page
 
-| Endpoint | Description |
-|---|---|
-| `GET /` | Dashboard with links to all visualizations |
-| `GET /api/psf-synthesis` | PSF synthesis visualizer (Claim 4 evidence) |
-| `GET /api/multihead` | Multi-head writer array with architecture selector |
-| `GET /api/2d-process` | 2D resist process simulation pipeline |
-| `GET /api/3d-pipeline` | 3D optical pipeline from source to wafer |
-| `GET /api/fleet-economics` | Fleet cost and throughput analysis |
-| `GET /api/phoenix-state` | Adaptive dose correction engine state |
-
-All visualization endpoints accept query parameters for tuning simulation inputs and return self-contained HTML with interactive Plotly charts.
+Every analytical-calculator return type in `backend/hhg_analytical.py`
+carries a `TierLabel` field by default, so a downstream caller cannot
+forget to label the output.
 
 ## Backend Modules
 
 ```
 backend/
-  psf_synthesis.py          # Core invention: PSF compositing engine
-  visualization_psf.py      # Plotly dashboard for PSF synthesis
-  multihead_model.py        # Multi-head tiling and stitching model
-  visualization_multihead.py
-  optical_pipeline.py       # VCSEL → HHG → EUV beam propagation
-  visualization_3d.py
-  lithography_model.py      # 2D aerial image + resist process
-  visualization.py
-  fleet_economics.py        # Cost-of-ownership and throughput
-  visualization_fleet.py
-  dose_engine.py            # Dose control and correction
-  calibration_engine.py     # Per-site calibration
-  physics_engine.py         # Shared physics utilities
-  hhg_model.py              # High-harmonic generation model
-  euv_psf.py                # Native EUV PSF model
-  resist_model.py           # Chemically amplified resist
+  epistemic.py              # NEW. Tier taxonomy + UI helpers.
+  hhg_analytical.py         # NEW. Analytical / formula-based calculators.
+  wavelength_bridge.py      # NEW. Driver -> harmonic cascade figure.
+  hhg_model.py              # Compatibility shim over hhg_analytical.
+  optical_pipeline.py       # Architectural HHG generation chain
+                            # + generated/beamline/delivered FluxBudget.
+  visualization.py          # 2D resist process pipeline (PARAMETERIZED).
+  visualization_3d.py       # 3D pipeline view (ARCHITECTURE).
+  visualization_psf.py      # PSF synthesis (PARAMETERIZED).
+  visualization_multihead.py# Multi-head packaging (ARCHITECTURE).
+  visualization_fleet.py    # Fleet economics sensitivity (ARCHITECTURE).
+  visualization_11dof.py    # 11-DOF writer-head exploded view (ARCHITECTURE).
+  psf_synthesis.py          # PSF compositing engine.
+  multihead_model.py        # Multi-head tiling and stitching.
+  lithography_model.py      # 2D aerial image + resist process.
+  fleet_economics.py        # Cost-of-ownership / throughput model.
+  dose_engine.py            # Phoenix adaptive-dose engine state.
+  euv_psf.py                # Native EUV PSF helpers.
+  resist_model.py           # Chemically amplified resist.
+  physics_engine.py         # Shared physics utilities.
+  citations.py              # Citation rendering / references panel.
+  references.py             # Reference bibliography.
 ```
 
-## PSF Synthesis (Patent Core)
+## Generated vs. Delivered Flux
 
-The PSF synthesis engine (`backend/psf_synthesis.py`) implements:
+`EUVOpticalPipeline.compute_flux_budget()` returns a `FluxBudget`
+dataclass with three explicitly tier-labelled fields:
 
-- **Incoherent compositing**: `PSF_eff = Σ w_i · PSF_native(x-Δx_i, y-Δy_i)` — intensities add, composite always ≥ native FWHM. Value is in reshaping (flat-top, annular profiles).
-- **Coherent compositing**: `|Σ a_i · e^(iφ_i) · E_native(...)|²` — destructive interference at wings can sharpen below native FWHM (~18% reduction).
-- **Coupled optimization** (Claim 4): joint cost function with fidelity + damage + spatial×temporal cross-coupling terms, optimized via Powell method with bounded perturbations from sequential warm start.
-- **NNLS decomposition**: non-negative least squares for physically valid incoherent weight constraints.
-- **Thermal relaxation**: `τ = d²/(4α)` modeling for resist thickness dependence.
+| Field | Tier | Source |
+| --- | --- | --- |
+| `source_photons_per_second` | `LITERATURE` | KMLabs XUUS-4 white paper anchors per gas. |
+| `beamline_transmission` | `ANALYTICAL` | `R^N · T^M` from `analytical_beamline_transmission`. |
+| `delivered_photons_per_second` | `PARAMETERIZED` | `source × beamline`; ignores sample absorption and detector QE. |
+
+The repo never reports a single "delivered EUV power" without exposing
+this three-way split.
+
+## Wavelength-Bridge Figure
+
+`backend/wavelength_bridge.py` renders a single architecture-level
+figure that places, on one wavelength axis from ~3 µm to ~1 nm:
+
+* driver bands (Ti:Sa 800 nm, Yb:YAG 1030 nm, MIR OPCPA 1800-3000 nm)
+* HHG-conversion arrows (analytical `E_cut` at representative I)
+* DUV / VUV / EUV / SXR spectral regions
+* the operating region of `vdw-polaritonics-lab` (193 / 248 nm DUV)
+* the operating region of THIS repo (HHG plateau 60-13.5 nm)
+* industrial anchors (DUV 193/248 nm, actinic 30 nm, ASML LPP 13.5 nm)
+
+The figure communicates the complementarity portfolio argument
+immediately — both repos sit on one wavelength axis, with the cavity
+upstream in DUV and the HHG chain downstream in EUV.
 
 ## Tests
 
@@ -78,12 +118,21 @@ The PSF synthesis engine (`backend/psf_synthesis.py`) implements:
 pytest tests/ -v
 ```
 
-45 tests covering PSF normalization, FWHM measurement, incoherent broadening constraints, coherent sharpening, thermal relaxation, NNLS decomposition, sequential/coupled optimization, coupled-beats-sequential guarantee, fleet economics, multihead tiling, 3D pipeline physics, and HTML generation.
+New tests added in this pass:
 
-## Static Export
+* `tests/test_hhg_analytical.py` — cutoff scaling, U_p formula,
+  efficiency anti-scaling, phase-matching window, beamline transmission
+  multiplicativity, generated-vs-delivered flux split.
+* `tests/test_epistemic.py` — every tier round-trips a label;
+  `render_badge` produces valid HTML; the scope banner is injected
+  into pages.
+* `tests/test_wavelength_bridge.py` — figure has all three repo
+  overlays and at least one HHG-conversion arrow per driver.
 
-The visualization pages can be exported as self-contained static HTML for deployment on Cloudflare Pages (or any static host). The export uses FastAPI's TestClient to render each page, then post-processes with BeautifulSoup to rewrite nav links and self-host Plotly.js. Exported pages are deployed at [industriallystrong.com/lab/](https://industriallystrong.com/lab/).
+Existing tests for the resist model, PSF synthesis, multihead model,
+fleet economics, and 3D pipeline continue to pass.
 
 ## License
 
-Proprietary. Patent pending.
+Proprietary. Patent pending. (See `README.md` for scope and
+limitations.)

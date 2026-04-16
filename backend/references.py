@@ -246,6 +246,124 @@ REFERENCES = {
         "type": "article",
     },
 
+    # ── HHG primary sources (added in P1 reframing pass) ──
+    100: {
+        "short": "Shiner et al., 2009",
+        "full": (
+            "Shiner, A.D. et al. \"Wavelength scaling of high harmonic "
+            "generation efficiency.\" Physical Review Letters 103, "
+            "073902 (2009). Foundational measurement of the "
+            "lambda^-(6.3 +/- 1.1) and lambda^-(6.5 +/- 1.1) "
+            "single-atom efficiency anti-scaling in Xe and Kr over "
+            "800-1850 nm. Anchors the eta(lambda) ~ lambda^-(5..6.5) "
+            "law used by backend/hhg_analytical.efficiency_scaling."
+        ),
+        "type": "article",
+        "url": "https://doi.org/10.1103/PhysRevLett.103.073902",
+    },
+    101: {
+        "short": "Lewenstein et al., 1994",
+        "full": (
+            "Lewenstein, M., Balcou, Ph., Ivanov, M.Yu., L'Huillier, A., "
+            "& Corkum, P.B. \"Theory of high-harmonic generation by "
+            "low-frequency laser fields.\" Physical Review A 49, 2117 "
+            "(1994). The strong-field approximation (SFA) underlying "
+            "every parameterized HHG single-atom calculation in this "
+            "repo, including the cutoff law E_cut = 3.17 U_p + I_p."
+        ),
+        "type": "article",
+        "url": "https://doi.org/10.1103/PhysRevA.49.2117",
+    },
+    102: {
+        "short": "Wikmark et al., 2022",
+        "full": (
+            "Wikmark, H. et al. \"Wide-bandwidth high-harmonic radiation "
+            "from a self-compressed pre-ionised plasma.\" Nature "
+            "Scientific Reports (2022). Demonstrates phase-matching "
+            "with a pre-ionised medium, extending the phase-matched "
+            "bandwidth by pre-selecting the ionisation fraction "
+            "before the driving pulse arrives. Anchors the "
+            "phase-matching window proxy in "
+            "backend/hhg_analytical.phase_matching_window."
+        ),
+        "type": "article",
+    },
+    103: {
+        "short": "Coherent / KMLabs XUUS-4",
+        "full": (
+            "Coherent / KMLabs XUUS-4 white paper: tabletop "
+            "high-harmonic source delivering ~1e11 photons/s/harmonic "
+            "at 35 nm (Ar) and ~1.5e7 photons/s/harmonic at 13.5 nm "
+            "(He), with beamline throughput further reducing delivered "
+            "flux to 0.1-10 percent of source. Industrial benchmark "
+            "anchoring SOURCE_SIDE_LITERATURE_ANCHORS in "
+            "backend/optical_pipeline."
+        ),
+        "type": "technology",
+    },
+    104: {
+        "short": "Carstens et al., 2024",
+        "full": (
+            "Carstens, H. et al. \"Cavity-enhanced high-harmonic "
+            "generation for high-power and high-repetition-rate VUV/EUV "
+            "sources.\" arXiv:2410.11589 (2024). State-of-the-field "
+            "review of CE-HHG cavities for >10 MHz EUV at 10-100 eV; "
+            "establishes that femtosecond enhancement cavities at the "
+            "NIR driver wavelength are physically distinct from any "
+            "DUV vdW intracavity modulation stack."
+        ),
+        "type": "article",
+        "url": "https://arxiv.org/abs/2410.11589",
+    },
+    105: {
+        "short": "ELI-ALPS pulse duration, 2025",
+        "full": (
+            "ELI-ALPS / SYLOS team. \"Systematic study of HHG yield as "
+            "a function of pulse duration.\" arXiv:2507.10153 (2025). "
+            "Demonstrates the non-monotonic interaction between pulse "
+            "duration and yield: below saturation, longer pulses yield "
+            "more total XUV photons (linear dependence); at near-"
+            "saturation intensities, shorter pulses outperform because "
+            "high free-electron density destroys phase matching. "
+            "Justifies pulse duration as a defensible modelling variable."
+        ),
+        "type": "article",
+    },
+    106: {
+        "short": "ArXiv 2509.02867 (open-source HHG sim)",
+        "full": (
+            "Open-source C++ HHG simulation program, BSD-licensed "
+            "(arXiv:2509.02867, 2025). Handles both macroscopic and "
+            "microscopic aspects of HHG. Software reference only; "
+            "no output of this program is reproduced or claimed in "
+            "this repo."
+        ),
+        "type": "technology",
+        "url": "https://arxiv.org/abs/2509.02867",
+    },
+    107: {
+        "short": "Corkum, 1993",
+        "full": (
+            "Corkum, P.B. \"Plasma perspective on strong-field "
+            "multiphoton ionization.\" Physical Review Letters 71, "
+            "1994 (1993). Semi-classical three-step model (ionisation "
+            "- acceleration - recombination) that complements the "
+            "Lewenstein SFA treatment."
+        ),
+        "type": "article",
+        "url": "https://doi.org/10.1103/PhysRevLett.71.1994",
+    },
+    108: {
+        "short": "ASML LPP source",
+        "full": (
+            "ASML laser-produced-plasma (LPP) EUV source: 250 W at "
+            "13.5 nm intermediate focus on NXE:3600D / NXE:3800E "
+            "scanners. Reference number for the LPP gap statement; "
+            "not a benchmark this repo claims to approach."
+        ),
+        "type": "technology",
+    },
+
     # ── Dose engine / Phoenix references ──
     59: {
         "short": "In-Situ Photodiodes",

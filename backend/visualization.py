@@ -93,6 +93,8 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
     <div class="nav">
         <a href="/api/visualize" class="active">2D Process Sim</a>
         <a href="/api/visualize-3d">3D Pipeline</a>
+        <a href="/api/wavelength-bridge">Wavelength Bridge</a>
+        <a href="/api/hhg-analytical">HHG Calculators</a>
         <a href="/api/fleet-dashboard">Platform Economics</a>
         <a href="/api/multihead">Multi-Head Array</a>
         <a href="/api/psf-synthesis">PSF Synthesis</a>
@@ -133,10 +135,13 @@ def build_tunable_html(stages, params, title="EUV Lithography Simulation Pipelin
         {plot_html}
     </div>
     <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:12px 20px;margin:12px 24px;font-size:13px;color:#1e40af;line-height:1.5;">
-        <b>Connection to hardware:</b> This simulation models the resist response to a single exposure field.
-        Each <a href="/api/writer-head" style="color:#2563eb;font-weight:700;">11-DOF writer head</a> delivers
-        this PSF to one tile. The <a href="/api/multihead" style="color:#2563eb;">multi-head array</a> tiles
-        many such heads across the wafer simultaneously.
+        <span style="background:#2563eb;color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:0.5px;font-weight:700;">PARAMETERIZED</span>
+        <b>Scope.</b> This simulation models a parameterized resist response
+        (Mack dissolution + reaction-diffusion PEB) to an aerial image.
+        The pipeline is illustrative: the resist parameters are not
+        calibrated to a specific commercial chemistry. Use this view to
+        explore process trade-offs (dose, PEB time, diffusion length,
+        Mack n), not to predict device-level CD or yield.
     </div>
 </body>
 </html>"""
