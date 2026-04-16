@@ -17,6 +17,28 @@ import numpy as np
 import plotly.graph_objects as go
 
 from backend.visualization_11dof import STACK_LAYERS
+from backend.epistemic import (
+    EPISTEMIC_CSS,
+    EpistemicTier,
+    SCOPE_BANNER_HTML,
+    page_tier_panel,
+)
+
+
+_3D_TIER_PANEL = page_tier_panel(
+    EpistemicTier.ARCHITECTURE,
+    page_title="3D Generation-Chain View (architectural diagram)",
+    note=(
+        "An <b>architecture-level</b> 3D system diagram of an HHG "
+        "generation chain inside a multi-head packaging concept. "
+        "<b>Not a built device</b> and not a delivered-flux claim. "
+        "The HHG cutoff, single-atom efficiency, and beamline "
+        "transmission shown alongside this view come from the "
+        "analytical / parameterized models on the "
+        "<a href='/api/hhg-analytical' style='color:#2563eb;'>HHG "
+        "Calculators</a> page."
+    ),
+)
 
 
 # -- Helpers for the static Plotly figure (keeps tests working) --------
@@ -608,6 +630,7 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
     <meta charset="utf-8">
     <title>{title}</title>
     <script src="plotly.min.js"></script>
+    <style>{EPISTEMIC_CSS}</style>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }}
         .nav {{ background: #1a1a2e; padding: 8px 24px; display: flex; gap: 16px; align-items: center; }}
@@ -645,6 +668,8 @@ def build_3d_pipeline_html(pipeline, params, title="Integrated Multi-Head Writer
         <a href="/api/psf-synthesis">PSF Synthesis</a>
         <a href="/api/writer-head">11-DOF Head</a>
     </div>
+    {SCOPE_BANNER_HTML}
+    {_3D_TIER_PANEL}
 
     <div class="hero">
         <h2>Integrated Multi-Head Writer Platform <span style="background:#a855f7;color:#fff;font-size:11px;padding:2px 8px;border-radius:3px;letter-spacing:0.5px;vertical-align:middle;">ARCHITECTURE</span></h2>

@@ -24,6 +24,7 @@ from backend.epistemic import (
     EpistemicTier,
     SCOPE_BANNER_HTML,
     EPISTEMIC_CSS,
+    page_tier_panel,
     render_badge,
     render_key,
 )
@@ -244,17 +245,55 @@ def build_hhg_analytical_html(
         '</table>'
     )
 
+    analytical_panel = page_tier_panel(
+        EpistemicTier.ANALYTICAL,
+        page_title="HHG Analytical Calculators (formula-based)",
+        note=(
+            "Every metric on this page is a closed-form expression "
+            "evaluated with stated assumptions, plus one literature-"
+            "anchored source-flux number on the budget table. <b>Nothing "
+            "here measures device flux.</b> Cutoff energy uses E_cut = "
+            "3.17 U_p + I_p[cite: 101][cite: 107]; single-atom yield "
+            "uses lambda^-(5..6.5)[cite: 100]; phase-matching window "
+            "uses eta_crit thresholds[cite: 102]; source-side flux is "
+            "quoted from the KMLabs XUUS-4 white paper[cite: 103]."
+        ),
+    )
+    # Top-of-page summary strip so an expert sees the key numbers within
+    # the first viewport without having to scroll past a bare form.
+    summary_strip = (
+        f'<div style="display:flex;flex-wrap:wrap;gap:8px;background:#f1f5f9;'
+        f'padding:10px 16px;border-bottom:1px solid #e2e8f0;font-size:12px;">'
+        f'<span style="color:#475569;"><b>At-a-glance</b> (current inputs):</span>'
+        f'<span>{badge_a} cutoff <b>{cut.cutoff_ev:.1f} eV</b> '
+        f'(H{cut.max_harmonic_order}, &lambda;_cut={cut.cutoff_wavelength_nm:.1f} nm)</span>'
+        f'<span>&middot;</span>'
+        f'<span>{badge_a} relative single-atom yield '
+        f'<b>{eff.relative_yield_central:.2e}</b> vs 800 nm</span>'
+        f'<span>&middot;</span>'
+        f'<span>{badge_a} beamline T '
+        f'<b>{bl.transmission*100:.2f}%</b></span>'
+        f'<span>&middot;</span>'
+        f'<span>{badge_a} phase-matching: '
+        f'<b>{"in window" if pm.in_window else "OVER-IONIZED"}</b></span>'
+        f'<span>&middot;</span>'
+        f'<span>{badge_l} source-flux anchor: KMLabs XUUS-4</span>'
+        f'</div>'
+    )
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>HHG analytical calculators - Laser-HHG-EUV Lab</title>
+    <title>HHG Analytical Calculators [ANALYTICAL] - Laser-HHG-EUV Lab</title>
     <style>{_PAGE_CSS}</style>
     <style>{EPISTEMIC_CSS}</style>
 </head>
 <body>
     {_NAV}
     {SCOPE_BANNER_HTML}
+    {analytical_panel}
+    {summary_strip}
     <form class="controls" method="get" action="/api/hhg-analytical">
         <div class="control-group">
             <label>Driver lambda (nm)</label>

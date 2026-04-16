@@ -285,3 +285,151 @@ def test_fleet_dashboard_cites_lpp_gap_anchor():
     for key in ["ASML_LPP", "Shiner_2009"]:
         needle = HHG_PRIMARY_REF_FULLTEXT[key]
         assert needle in body, f"Expected reference fragment '{needle}' ({key}) on /api/fleet-dashboard"
+
+
+# ---------------------------------------------------------------------------
+# P1.5 first-impression discipline
+#
+# For every priority page the SCOPE_BANNER and the per-page TIER PANEL
+# must appear BEFORE the first quantitative content (hero stat, form,
+# main figure). These tests pin the *order* of HTML markers so a future
+# refactor cannot quietly demote the framing below the fold.
+# ---------------------------------------------------------------------------
+
+PRIORITY_PAGES_FIRST_IMPRESSION = {
+    "/api/fleet-dashboard": {
+        "tier_phrase": "Platform Economics &amp; ASML Comparison (architectural)",
+        "first_content_marker": '<div class="hero">',
+    },
+    "/api/visualize-3d": {
+        "tier_phrase": "3D Generation-Chain View (architectural diagram)",
+        "first_content_marker": '<div class="hero">',
+    },
+    "/api/multihead": {
+        "tier_phrase": "Multi-Head Writer Array (architectural concept)",
+        "first_content_marker": '<form class="controls"',
+    },
+    "/api/psf-synthesis": {
+        "tier_phrase": "PSF Synthesis (parameterized)",
+        "first_content_marker": '<form class="controls"',
+    },
+    "/api/hhg-analytical": {
+        "tier_phrase": "HHG Analytical Calculators (formula-based)",
+        "first_content_marker": '<form class="controls"',
+    },
+    "/api/wavelength-bridge": {
+        "tier_phrase": "Wavelength Bridge (architectural diagram)",
+        "first_content_marker": "<h2>Wavelength bridge",
+    },
+}
+
+
+def test_priority_pages_have_scope_banner_above_first_content():
+    """Scope banner must appear before the first quantitative content."""
+    for path, expected in PRIORITY_PAGES_FIRST_IMPRESSION.items():
+        body = client.get(path).text
+        i_scope = body.find("Scope &amp; epistemic tier")
+        i_first = body.find(expected["first_content_marker"])
+        assert i_scope != -1, f"{path}: scope banner missing"
+        assert i_first != -1, (
+            f"{path}: first content marker '{expected['first_content_marker']}' missing"
+        )
+        assert i_scope < i_first, (
+            f"{path}: scope banner appears AFTER first content "
+            f"(scope at {i_scope}, content at {i_first})"
+        )
+
+
+def test_priority_pages_have_tier_panel_above_first_content():
+    """Per-page tier panel must appear before the first quantitative content."""
+    for path, expected in PRIORITY_PAGES_FIRST_IMPRESSION.items():
+        body = client.get(path).text
+        i_panel = body.find(expected["tier_phrase"])
+        i_first = body.find(expected["first_content_marker"])
+        assert i_panel != -1, (
+            f"{path}: tier panel phrase '{expected['tier_phrase']}' missing"
+        )
+        assert i_first != -1, (
+            f"{path}: first content marker '{expected['first_content_marker']}' missing"
+        )
+        assert i_panel < i_first, (
+            f"{path}: tier panel appears AFTER first content "
+            f"(panel at {i_panel}, content at {i_first})"
+        )
+
+
+def test_fleet_hero_metrics_carry_architecture_tag_each():
+    """Highest-risk page: every hero stat must carry an inline
+    [ARCHITECTURE] chip so the strip cannot read as a deployable
+    benchmark even when skimmed."""
+    body = client.get("/api/fleet-dashboard").text
+    # Each of the five hero-stat blocks should contain the .tag span.
+    n_arch_tags = body.count('class="tag">ARCHITECTURE')
+    assert n_arch_tags >= 5, (
+        f"/api/fleet-dashboard hero must carry an ARCHITECTURE tag in "
+        f"each of the 5 hero stats; found {n_arch_tags}"
+    )
+
+
+def test_fleet_hero_labels_no_longer_read_as_benchmarks():
+    """The hero labels must read as sensitivity outputs, not as
+    bare benchmark wins like 'Cost vs ASML' or 'Power Reduction'."""
+    body = client.get("/api/fleet-dashboard").text
+    # Old benchmark-style labels (now deprecated) must NOT appear in the
+    # hero block.
+    deprecated_labels = [
+        ">Cost vs ASML<",
+        ">Power Reduction<",
+        ">Footprint<",
+        ">Per-Head Failure<",
+        ">Platform wph<",
+    ]
+    for bad in deprecated_labels:
+        assert bad not in body, (
+            f"/api/fleet-dashboard still uses deprecated benchmark "
+            f"label '{bad}'; replace with sensitivity-style wording."
+        )
+    # New sensitivity-framed labels must be present.
+    expected_labels = [
+        "Sensitivity: cost-axis ratio",
+        "Sensitivity: power-axis ratio",
+        "Sensitivity: footprint ratio",
+        "Architecture: per-head",
+        "Sensitivity: throughput",
+    ]
+    for needle in expected_labels:
+        assert needle in body, (
+            f"/api/fleet-dashboard hero is missing the sensitivity-"
+            f"framed label '{needle}'"
+        )
+
+
+def test_fleet_hero_value_demoted_to_neutral_color():
+    """Hero values must use the demoted (neutral grey) styling, not
+    the old large-blue benchmark-win styling."""
+    body = client.get("/api/fleet-dashboard").text
+    # The new demoted styling rule.
+    assert ".hero-stat .value" in body
+    assert "color: #cbd5e1" in body, (
+        "/api/fleet-dashboard hero values must use the demoted "
+        "neutral-grey colour (#cbd5e1), not the old #38bdf8 cyan."
+    )
+    assert "#38bdf8" not in body or "color: #38bdf8" not in body, (
+        "/api/fleet-dashboard still applies the old cyan colour to "
+        "the hero-stat values."
+    )
+
+
+def test_hhg_analytical_summary_strip_above_form():
+    """The at-a-glance summary strip must appear before the form so a
+    skim reader sees the four analytical numbers within the first
+    viewport."""
+    body = client.get("/api/hhg-analytical").text
+    i_summary = body.find("At-a-glance")
+    i_form = body.find('<form class="controls"')
+    assert i_summary != -1, "/api/hhg-analytical missing 'At-a-glance' summary strip"
+    assert i_form != -1
+    assert i_summary < i_form, (
+        "/api/hhg-analytical summary strip must precede the form "
+        f"(summary at {i_summary}, form at {i_form})"
+    )

@@ -421,14 +421,35 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
 
         .hero {{
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #fff; padding: 32px 40px; display: flex; gap: 32px; flex-wrap: wrap;
+            color: #fff; padding: 18px 32px 22px; display: flex; gap: 24px; flex-wrap: wrap;
+        }}
+        .hero-banner-line {{
+            width: 100%; font-size: 11px; color: #fbbf24; letter-spacing: 0.6px;
+            text-transform: uppercase; font-weight: 700; margin-bottom: 4px;
+        }}
+        .hero-banner-sub {{
+            width: 100%; font-size: 12px; color: #94a3b8; line-height: 1.45;
+            margin-bottom: 12px;
+        }}
+        .hero-banner-sub code {{
+            background: #1e293b; padding: 1px 6px; border-radius: 3px; color: #cbd5e1;
         }}
         .hero-stat {{
-            text-align: center; min-width: 160px; flex: 1;
+            text-align: center; min-width: 140px; flex: 1;
+            border-left: 2px solid #334155; padding: 4px 8px;
         }}
-        .hero-stat .value {{ font-size: 36px; font-weight: 800; color: #38bdf8; }}
-        .hero-stat .label {{ font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }}
-        .hero-stat .sub {{ font-size: 13px; color: #64748b; margin-top: 2px; }}
+        .hero-stat:first-of-type {{ border-left: none; }}
+        /* Demoted in P1.5: smaller value, neutral colour, explicit
+           "[ARCHITECTURE]" tag so the strip cannot read as a deployable
+           benchmark. */
+        .hero-stat .value {{ font-size: 22px; font-weight: 700; color: #cbd5e1; }}
+        .hero-stat .label {{ font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; line-height: 1.3; }}
+        .hero-stat .sub {{ font-size: 11px; color: #64748b; margin-top: 4px; line-height: 1.4; }}
+        .hero-stat .tag {{
+            display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 3px;
+            background: #a855f7; color: #fff; letter-spacing: 0.5px; font-weight: 700;
+            margin-top: 6px;
+        }}
 
         .section {{ padding: 16px 24px; }}
         .section h2 {{ font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; border-bottom: 2px solid #2563eb; padding-bottom: 6px; display: inline-block; }}
@@ -502,30 +523,47 @@ def build_fleet_dashboard_html(scenarios, params, title="Platform Economics & AS
     {_FLEET_TIER_PANEL}
 
     <div class="hero">
+        <div class="hero-banner-line">
+            ARCHITECTURE \u2014 sensitivity outputs, not measured platform performance
+        </div>
+        <div class="hero-banner-sub">
+            All five numbers below are <b>architecture-sensitivity outputs</b> derived from one
+            input parameter: <code>per-head EUV power = {scenario_10.euv_power_mw} mW</code>
+            (treated as a tunable input, NOT a measured delivered flux from the HHG source).
+            The "vs ASML" comparisons are <b>order-of-magnitude framing</b>; this repo does not
+            assert that gas-jet HHG can be scaled to ASML LPP power levels &mdash; the gap is
+            physical, not engineering. See <a href="/api/hhg-analytical" style="color:#93c5fd;">HHG
+            Calculators</a> for the analytical source / beamline / delivered flux split.
+        </div>
         <div class="hero-stat">
             <div class="value">{scenario_10.capex_savings_pct:+.0f}%</div>
-            <div class="label">Cost vs ASML</div>
-            <div class="sub">${scenario_10.platform_cost_m:.1f}M platform vs $380M monolith</div>
+            <div class="label">Sensitivity: cost-axis ratio<br>vs ASML LPP reference</div>
+            <div class="sub">${scenario_10.platform_cost_m:.1f}M architectural sketch vs $380M ASML LPP scanner</div>
+            <div class="tag">ARCHITECTURE</div>
         </div>
         <div class="hero-stat">
             <div class="value">{scenario_10.power_savings_pct:+.1f}%</div>
-            <div class="label">Power Reduction</div>
-            <div class="sub">{scenario_10.platform_power_kw:.1f} kW vs 1,500 kW</div>
+            <div class="label">Sensitivity: power-axis ratio<br>vs ASML LPP reference</div>
+            <div class="sub">{scenario_10.platform_power_kw:.1f} kW architectural sketch vs 1,500 kW ASML draw</div>
+            <div class="tag">ARCHITECTURE</div>
         </div>
         <div class="hero-stat">
             <div class="value">{scenario_10.footprint_savings_pct:+.0f}%</div>
-            <div class="label">Footprint</div>
-            <div class="sub">{scenario_10.footprint_m2} m\u00b2 desk vs 120 m\u00b2 cleanroom</div>
+            <div class="label">Sensitivity: footprint ratio<br>vs ASML LPP reference</div>
+            <div class="sub">{scenario_10.footprint_m2} m\u00b2 packaging concept vs 120 m\u00b2 ASML cleanroom</div>
+            <div class="tag">ARCHITECTURE</div>
         </div>
         <div class="hero-stat">
             <div class="value">{scenario_10.single_head_failure_pct:.2f}%</div>
-            <div class="label">Per-Head Failure</div>
-            <div class="sub">{scenario_10.total_heads:,} heads \u2192 graceful degradation</div>
+            <div class="label">Architecture: per-head<br>failure margin</div>
+            <div class="sub">{scenario_10.total_heads:,} head slots in the packaging concept</div>
+            <div class="tag">ARCHITECTURE</div>
         </div>
         <div class="hero-stat">
             <div class="value">{scenario_10.wph:.1f}</div>
-            <div class="label">Platform wph</div>
-            <div class="sub">@ {scenario_10.euv_power_mw} mW, {dose} mJ/cm\u00b2 dose</div>
+            <div class="label">Sensitivity: throughput<br>at input EUV power</div>
+            <div class="sub">@ input P={scenario_10.euv_power_mw} mW/head, dose={dose} mJ/cm\u00b2 (assumed)</div>
+            <div class="tag">ARCHITECTURE</div>
         </div>
     </div>
 
